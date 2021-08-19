@@ -42,6 +42,7 @@ pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
 pub use pallet_template;
+pub use pallet_poe;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -138,6 +139,7 @@ parameter_types! {
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 42;
+
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -233,6 +235,8 @@ impl pallet_timestamp::Config for Runtime {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 	pub const MaxLocks: u32 = 50;
+
+	pub const LimitSize: u32 = 20;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -270,6 +274,12 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
+impl pallet_poe::Config for Runtime {
+	type Event = Event;
+
+	type LimitSize = LimitSize;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -287,6 +297,7 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
+		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -480,6 +491,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, pallet_template, TemplateModule);
+			add_benchmark!(params, batches, pallet_poe, PoeModule);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok((batches, storage_info))
