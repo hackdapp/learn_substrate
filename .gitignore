@@ -1,0 +1,4 @@
+kitty-backend-chain/target
+kitty-ui/node_modules
+.DS_Store
+kitty-ui/build
