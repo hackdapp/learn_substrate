@@ -41,8 +41,7 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
-pub use pallet_template;
-pub use pallet_poe;
+pub use pallet_kitties;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -235,8 +234,6 @@ impl pallet_timestamp::Config for Runtime {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 	pub const MaxLocks: u32 = 50;
-
-	pub const LimitSize: u32 = 20;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -255,6 +252,7 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
+	pub const ReserveOfNewCreate: u32 = 1_000;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -269,15 +267,13 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-/// Configure the pallet-template in pallets/template.
-impl pallet_template::Config for Runtime {
-	type Event = Event;
-}
 
-impl pallet_poe::Config for Runtime {
+impl pallet_kitties::Config for Runtime {
 	type Event = Event;
-
-	type LimitSize = LimitSize;
+	type Randomness = RandomnessCollectiveFlip;
+	type KittyIndex = u32;
+	type ReserveOfNewCreate = ReserveOfNewCreate;
+	type Currency = Balances;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -296,8 +292,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		// Include the custom logic from the pallet-template in the runtime.
-		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
-		PoeModule: pallet_poe::{Pallet, Call, Storage, Event<T>},
+		KittyModule: pallet_kitties::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -490,8 +485,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
-			add_benchmark!(params, batches, pallet_template, TemplateModule);
-			add_benchmark!(params, batches, pallet_poe, PoeModule);
+			add_benchmark!(params, batches, pallet_kitties, KittyModule);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok((batches, storage_info))
